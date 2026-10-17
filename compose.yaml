@@ -1,0 +1,57 @@
+name: ${COMPOSE_PROJECT_NAME:?Ejecutar configure.py}
+services:
+  db:
+    image: mariadb:11.4
+    restart: unless-stopped
+    environment:
+      MARIADB_DATABASE: kimai
+      MARIADB_USER: kimai
+      MARIADB_PASSWORD: ${DB_PASSWORD:?Falta clave}
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:?Falta clave}
+    volumes:
+      - db:/var/lib/mysql
+    healthcheck:
+      test: [CMD, healthcheck.sh, --connect, --innodb_initialized]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+  app:
+    image: kimai/kimai2:2.69.0@sha256:5795e938c4b028ca523ade7aadc9be176ac8161d0fc712de5c1559bd59b01986
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      APP_ENV: prod
+      APP_SECRET: ${APP_SECRET:?Falta secreto}
+      DATABASE_URL: mysql://kimai:${DB_PASSWORD:?Falta clave}@db:3306/kimai?charset=utf8mb4&serverVersion=11.4.0-MariaDB
+      TRUSTED_HOSTS: ${TRUSTED_HOSTS:?Falta dominio}
+      TRUSTED_PROXIES: ${TRUSTED_PROXIES:-127.0.0.1}
+      MAILER_URL: ${MAILER_URL:-null://localhost}
+      MAILER_FROM: ${ADMINMAIL:?Falta correo}
+    volumes:
+      - type: volume
+        source: data
+        target: /opt/kimai/var/data
+        volume:
+          nocopy: true
+      - type: volume
+        source: plugins
+        target: /opt/kimai/var/plugins
+        volume:
+          nocopy: true
+    expose: ['8001']
+    healthcheck:
+      test: [CMD, curl, -f, http://127.0.0.1:8001/]
+      interval: 30s
+      timeout: 10s
+      retries: 6
+      start_period: 120s
+volumes:
+  db:
+    name: ${VOLUME_PREFIX:?Falta prefijo}-db
+  data:
+    name: ${VOLUME_PREFIX:?Falta prefijo}-data
+  plugins:
+    name: ${VOLUME_PREFIX:?Falta prefijo}-plugins

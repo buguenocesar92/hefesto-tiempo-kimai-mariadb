@@ -1,0 +1,7 @@
+services:
+  app:
+    ports:
+      - 127.0.0.1:8001:8001
+    environment:
+      ADMINMAIL: ${ADMINMAIL:?Falta correo}
+      ADMINPASS: ${ADMINPASS:?Falta clave inicial}
