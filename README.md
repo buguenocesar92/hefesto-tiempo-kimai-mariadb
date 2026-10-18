@@ -22,7 +22,7 @@ Coolify detecta este directorio como recurso Docker Compose y enruta el dominio 
 
 - El compose **no fuerza nombre de proyecto, red ni volumen** a nivel raíz: Coolify los nombra por recurso.
 - Los volúmenes nombrados usan prefijo variable con valor por defecto `hefesto-tiempo`. Si comparte VPS, cámbielo (`VOLUME_PREFIX`) para no colisionar con otra instalación.
-- `TRUSTED_PROXIES` admite por defecto la red Docker típica (`127.0.0.1,172.18.0.0/16`). Inspeccione la red del contenedor con `docker network inspect <coolify-net>` y ajuste el CIDR a la subred real de Traefik si difiere. Manténgalo estrecho.
+- `TRUSTED_PROXIES` admite por defecto las subredes privadas típicas en las que Coolify/Traefik puede asignar su red (`127.0.0.1,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16`). Inspeccione la red del contenedor con `docker network inspect <coolify-net>` y ajuste el CIDR a la subred real de Traefik si difiere. Manténgalo estrecho.
 - `TRUSTED_HOSTS` debe contener el dominio real (regex) además de `localhost` y `127.0.0.1` para que el healthcheck siga funcionando.
 - El admin inicial solo se crea combinando `-f compose.bootstrap.yaml` con `ADMINMAIL` y `ADMINPASS`. **No** use ese compose en producción: publica el puerto 8001. Tras el primer arranque, recree el servicio solo con `compose.yaml` y borre `ADMINPASS` del entorno.
 - MariaDB no publica puertos; el acceso es solo por la red interna del compose. SMTP opcional: déjelo en `null://localhost` mientras no haya un proveedor real.
