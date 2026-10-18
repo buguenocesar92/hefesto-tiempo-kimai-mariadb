@@ -26,7 +26,7 @@ services:
       APP_SECRET: ${APP_SECRET:?Falta secreto}
       DATABASE_URL: mysql://kimai:${DB_PASSWORD:?Falta clave}@db:3306/kimai?charset=utf8mb4&serverVersion=11.4.0-MariaDB
       TRUSTED_HOSTS: ${TRUSTED_HOSTS:?Falta dominio}
-      TRUSTED_PROXIES: ${TRUSTED_PROXIES:-127.0.0.1,172.16.0.0/12}
+      TRUSTED_PROXIES: ${TRUSTED_PROXIES:-127.0.0.1,172.18.0.0/16}
       MAILER_URL: ${MAILER_URL:-null://localhost}
       MAILER_FROM: ${ADMINMAIL:?Falta correo}
     volumes:
