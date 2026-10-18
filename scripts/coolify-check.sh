@@ -149,7 +149,7 @@ done
 
 # Contrato punto 1: en cada servicio sin profiles no puede haber nada que
 # salte Traefik ni dé poder sobre el host.
-INVALID_SVC="$(printf '%s' "$RENDER" | jq -r '
+INVALID_SVC="$(printf '%s' "$RENDER" | jq -r --arg repo "$REPO_ROOT" '
   .services
   | to_entries
   | map({
@@ -164,7 +164,7 @@ INVALID_SVC="$(printf '%s' "$RENDER" | jq -r '
       pid: (.value.pid // null),
       ipc: (.value.ipc // null),
       security_opt: (.value.security_opt // []),
-      binds: ([.value.volumes // [] | .[] | select(has("source") | not) | select(.type == "bind") | .source])
+      binds: ([.value.volumes // [] | .[] | select(.type == "bind") | .source | select((startswith($repo + "/") | not) or test("docker\\.sock"))])
     })
   | map(select(.profiles | length == 0))
   | map(
@@ -178,7 +178,7 @@ INVALID_SVC="$(printf '%s' "$RENDER" | jq -r '
           (if $s.network_mode == "host" then "network_mode=host" else empty end),
           (if $s.pid == "host" then "pid=host" else empty end),
           (if $s.ipc == "host" then "ipc=host" else empty end),
-          (if ($s.security_opt | map(select(. == "unconfined")) | length > 0) then "security_opt=unconfined" else empty end),
+          (if ($s.security_opt | map(select(test("unconfined"))) | length > 0) then "security_opt=unconfined" else empty end),
           (if ($s.binds | length > 0) then "binds=\($s.binds | tostring)" else empty end)
         ]
       | map("\($s.svc):\(.)")
