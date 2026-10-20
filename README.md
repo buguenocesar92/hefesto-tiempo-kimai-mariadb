@@ -17,6 +17,18 @@ ssh -L 8001:127.0.0.1:8001 usuario@servidor
 ```
 Acceder a http://localhost:8001. Usuario `admin`; clave inicial ADMINPASS en `.env`. Revisar logs del arranque y versión. Completar las instrucciones de `docs/despliegue.md` antes de publicar.
 
+## Despliegue en Coolify (MVP Hefesto)
+Coolify detecta este directorio como recurso Docker Compose y enruta el dominio HTTPS mediante Traefik. La rama `coolify` está ajustada a ese contrato; en concreto:
+
+- El compose **no fuerza nombre de proyecto, red ni volumen** a nivel raíz: Coolify los nombra por recurso.
+- Los volúmenes nombrados usan prefijo variable con valor por defecto `hefesto-tiempo`. Si comparte VPS, cámbielo (`VOLUME_PREFIX`) para no colisionar con otra instalación.
+- `TRUSTED_PROXIES` admite por defecto las subredes privadas típicas en las que Coolify/Traefik puede asignar su red (`127.0.0.1,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16`). Inspeccione la red del contenedor con `docker network inspect <coolify-net>` y ajuste el CIDR a la subred real de Traefik si difiere. Manténgalo estrecho.
+- `TRUSTED_HOSTS` debe contener el dominio real (regex) además de `localhost` y `127.0.0.1` para que el healthcheck siga funcionando.
+- El admin inicial solo se crea combinando `-f compose.bootstrap.yaml` con `ADMINMAIL` y `ADMINPASS`. **No** use ese compose en producción: publica el puerto 8001. Tras el primer arranque, recree el servicio solo con `compose.yaml` y borre `ADMINPASS` del entorno.
+- MariaDB no publica puertos; el acceso es solo por la red interna del compose. SMTP opcional: déjelo en `null://localhost` mientras no haya un proveedor real.
+
+Consulte `.env.example` para la lista completa de variables con su descripción. `docs/despliegue.md` detalla la operación y la aceptación del VPS.
+
 ## Stack y límites
 Kimai declara soporte para MariaDB/MySQL; Supabase PostgreSQL no es backend nativo compatible. No se incluye Supabase Auth/Storage ni un puente artificial de base de datos. Para Odoo se incluye un procedimiento de exportación y mapeo, no un conector sincronizado.
 
